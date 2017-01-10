@@ -1,9 +1,11 @@
+from subprocess import Popen
 import tempfile
 
 from flask import Flask, render_template, request, redirect, flash, url_for
 
 
 ALLOWED_EXTENSIONS = ['pptx']
+POWMASH_BIN_PATH = '~/Projects/PrezMashup/MashupConverter/bin/Release/MashupConverter.exe'
 
 
 app = Flask(__name__)
@@ -39,8 +41,11 @@ def deploy_post():
     if file and allowed_file(file.filename):
         with tempfile.NamedTemporaryFile() as tf:
             file.save(tf.name)
-            if not execute_converter(tf):
-                flash('An error occurred in the conversion')
+            try:
+                flow = execute_converter(tf)
+                deploy_to_nodered(flow)
+            except ValueError as e:
+                flash(e)
                 return redirect(request.url)
         return redirect(url_for('control'))
     flash('File extension not allowed')
@@ -53,7 +58,15 @@ def control():
 
 
 def execute_converter(file):
-    return True
+    p = Popen(['mono', POWMASH_BIN_PATH, '-i', file.name])
+    out, err = p.communicate()
+    if p.returncode != 0:
+        raise ValueError(err)
+    return out
+
+
+def deploy_to_nodered(flow):
+    pass
 
 
 if __name__ == '__main__':
