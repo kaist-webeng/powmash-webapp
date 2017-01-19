@@ -8,17 +8,12 @@ import requests
 
 
 ALLOWED_EXTENSIONS = ['pptx']
-POWMASH_BIN_DIR = '/Users/nyangkun/Projects/PrezMashup/MashupConverter/bin/Release'
-POWMASH_BIN_FILENAME = 'MashupConverter.exe'
-MONO_FRAMEWORK_PATH = '/Library/Frameworks/Mono.framework/Versions/Current'
-NODERED_HOST = 'localhost'
-NODERED_PORT = 1880
-NODERED_TAB_LABEL = 'PowMash'
 
 
 app = Flask(__name__)
-app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
-furl_nodered = furl().set(scheme='http', host=NODERED_HOST, port=NODERED_PORT)
+app.config.from_envvar('POWMASH_WEBAPP_SETTINGS')
+furl_nodered = furl().set(scheme='http', host=app.config['NODERED_HOST'],
+                          port=app.config['NODERED_PORT'])
 
 
 def allowed_file(filename):
@@ -67,10 +62,11 @@ def control():
 
 
 def execute_converter(file):
-    mono_path = PurePath(MONO_FRAMEWORK_PATH, 'bin', 'mono')
-    powmash_bin_path = PurePath(POWMASH_BIN_DIR, POWMASH_BIN_FILENAME)
+    mono_path = PurePath(app.config['MONO_FRAMEWORK_PATH'], 'bin', 'mono')
+    powmash_bin_path = PurePath(app.config['CONVERTER_BIN_DIR'],
+                                app.config['CONVERTER_BIN_FILENAME'])
     cp = subprocess.run([str(mono_path), str(powmash_bin_path), '-i', file.name],
-                        cwd=POWMASH_BIN_DIR,
+                        cwd=app.config['CONVERTER_BIN_CWD'],
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE)
     if cp.returncode != 0:
@@ -93,7 +89,8 @@ def get_nodered_tab_id():
     res = r.json()
     tab_id = None
     for node in res:
-        if node['type'] == 'tab' and node['label'] == NODERED_TAB_LABEL:
+        if node['type'] == 'tab' and \
+           node['label'] == app.config['NODERED_TAB_LABEL']:
             tab_id = node['id']
             break
     return tab_id
@@ -111,7 +108,7 @@ def create_nodered_tab(flow):
 
     def data():
         yield b'{"label":"'
-        yield NODERED_TAB_LABEL.encode()
+        yield app.config['NODERED_TAB_LABEL'].encode()
         yield b'","nodes":'
         yield flow
         yield b'}'
