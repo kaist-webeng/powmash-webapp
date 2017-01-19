@@ -1,11 +1,14 @@
-from subprocess import Popen
+from pathlib import PurePath
+import subprocess
 import tempfile
 
 from flask import Flask, render_template, request, redirect, flash, url_for
 
 
 ALLOWED_EXTENSIONS = ['pptx']
-POWMASH_BIN_PATH = '~/Projects/PrezMashup/MashupConverter/bin/Release/MashupConverter.exe'
+POWMASH_BIN_DIR = '/Users/nyangkun/Projects/PrezMashup/MashupConverter/bin/Release'
+POWMASH_BIN_FILENAME = 'MashupConverter.exe'
+MONO_FRAMEWORK_PATH = '/Library/Frameworks/Mono.framework/Versions/Current'
 
 
 app = Flask(__name__)
@@ -58,11 +61,15 @@ def control():
 
 
 def execute_converter(file):
-    p = Popen(['mono', POWMASH_BIN_PATH, '-i', file.name])
-    out, err = p.communicate()
-    if p.returncode != 0:
-        raise ValueError(err)
-    return out
+    mono_path = PurePath(MONO_FRAMEWORK_PATH, 'bin', 'mono')
+    powmash_bin_path = PurePath(POWMASH_BIN_DIR, POWMASH_BIN_FILENAME)
+    cp = subprocess.run([str(mono_path), str(powmash_bin_path), '-i', file.name],
+                        cwd=POWMASH_BIN_DIR,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE)
+    if cp.returncode != 0:
+        raise ValueError(cp.stderr)
+    return cp.stdout
 
 
 def deploy_to_nodered(flow):
