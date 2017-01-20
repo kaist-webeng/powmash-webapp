@@ -2,7 +2,7 @@ from pathlib import PurePath
 import subprocess
 import tempfile
 
-from flask import Flask, render_template, request, redirect, flash, url_for
+from flask import Flask, render_template, request, redirect, flash, url_for, abort, Response
 from furl import furl
 import requests
 
@@ -58,8 +58,17 @@ def deploy_post():
 
 @app.route('/control', methods=['GET'])
 def control():
-    return "TBD"
+    return render_template('control.html')
 
+@app.route('/control', methods=['POST'])
+def control_post():
+    response = ""
+    node_red_request = execute_next_in_flow()
+    if(node_red_request.status_code == 200):
+        response = Response(node_red_request.content, mimetype="application/json")
+    else:
+        response = abort(404)
+    return response
 
 def execute_converter(file):
     mono_path = PurePath(app.config['MONO_FRAMEWORK_PATH'], 'bin', 'mono')
@@ -117,6 +126,16 @@ def create_nodered_tab(flow):
     if r.status_code not in (200, 204):
         raise NodeRedError(f.path, r.status_code)
 
+#######################################
+#######################################
+#######################################
+#   Node Red Proxy                    #
+#######################################
+
+def execute_next_in_flow():
+    url = furl_nodered.copy().add(path="/execute_next")
+    r = requests.post(url)
+    return r
 
 class NodeRedError(RuntimeError):
     MSG_FORMAT = "Node-RED HTTP API request to endpoint '{0}' failed with status code {1}"

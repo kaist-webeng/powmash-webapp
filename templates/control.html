@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <title>Deploy your mashup</title>
+    <style>
+        ul{
+            list-style: none;
+            padding: 0px;
+            font-size: 2em;
+        }
+        button{
+            font-weight: 800;
+
+        }
+    </style>
+    <script>
+
+    </script>
+</head>
+<body>
+
+
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">PowMash</a>
+    </div>
+</nav>
+
+
+<div class="col-xs-12 text-center">
+    <ul>
+        <li class="activity">
+            Activity: 1
+        </li>
+        <li class="step">
+            Step: 1
+        </li>
+    </ul>
+    <button class="btn btn-lg btn-primary js-btn-next">
+             Next activity
+     </button>
+</div>
+
+<script>
+$(document).ready(function ($) {
+    $(document).on('click', '.js-btn-next', function () {
+        $.ajax({
+            timeout: 60000,
+            type: "POST",
+            url: "/control",
+            success: function (result) {
+                $("activity").html("Activity: "+ result.curr_activity);
+                $("step").html("Step: "+ result.curr_step);
+                if (result.task_finished && result.task_finished == true){
+                    $("step").insertAfter("<li class=≤\"task\"> Task has finished. </li>");
+                }
+            },
+            error: function (result){
+                alert('There was an error in the execution.');
+            }
+        });
+    });
+
+});
+
+
+</script>
+</body>
+</html>
