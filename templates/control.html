@@ -56,28 +56,28 @@
 </div>
 
 <script>
-$(document).ready(function ($) {
-    $(document).on('click', '.js-btn-next', function () {
+jQuery(function ($) {
+    var activity = $('.activity');
+    var step = $('.step');
+    $('.js-btn-next').on('click', function () {
         $.ajax({
             timeout: 60000,
-            type: "POST",
-            url: "/control",
-            success: function (result) {
-                $("activity").html("Activity: "+ result.curr_activity);
-                $("step").html("Step: "+ result.curr_step);
-                if (result.task_finished && result.task_finished == true){
-                    $("step").insertAfter("<li class=≤\"task\"> Task has finished. </li>");
+            type: 'POST',
+            url: '/control'
+        })
+            .done(function (result) {
+                activity.html("Activity: " + result.curr_activity);
+                step.html("Step: "+ result.curr_step);
+                if (result.task_finished && result.task_finished) {
+                    step.after("<li class=\"task\"> Task has finished. </li>");
                 }
-            },
-            error: function (result){
+            })
+            .fail(function () {
                 alert('There was an error in the execution.');
-            }
-        });
+            });
     });
-
 });
-
-
 </script>
+
 </body>
 </html>
