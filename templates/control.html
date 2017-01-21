@@ -1,83 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <title>Control your mashup</title>
-    <style>
-        ul{
-            list-style: none;
-            padding: 0px;
-            font-size: 2em;
-        }
-        button{
-            font-weight: 800;
+{% extends "layout.html" %}
 
-        }
-    </style>
-    <script>
+    {% block title %}
+        PowMash: Control your mashup
+    {% endblock %}
 
-    </script>
-</head>
-<body>
+    {% block head %}
+        <style>
+            ul{
+                list-style: none;
+                padding: 0px;
+                font-size: 2em;
+            }
+            button{
+                font-weight: 800;
+            }
+        </style>
+    {% endblock %}
 
+    {% block body %}
+        <ul>
+            <li class="activity">
+                Activity: (not running)
+            </li>
+            <li class="step">
+                Step: (not running)
+            </li>
+        </ul>
+        <button class="btn btn-lg btn-primary js-btn-next">
+                 Next activity
+         </button>
 
-<nav class="navbar navbar-default">
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="#">PowMash</a>
-    </div>
-</nav>
+    {% endblock %}
 
+    {% block footer %}
+        <script>
+        jQuery(function ($) {
+            var activity = $('.activity');
+            var step = $('.step');
 
-<div class="col-xs-12 text-center">
-    <ul>
-        <li class="activity">
-            Activity: (not running)
-        </li>
-        <li class="step">
-            Step: (not running)
-        </li>
-    </ul>
-    <button class="btn btn-lg btn-primary js-btn-next">
-             Next activity
-     </button>
-</div>
+            $('.js-btn-next').on('click', function () {
+                // Disable button.
+                $('.js-btn-next').attr('disabled','disabled');
 
-<script>
-jQuery(function ($) {
-    var activity = $('.activity');
-    var step = $('.step');
-    $('.js-btn-next').on('click', function () {
-        $.ajax({
-            timeout: 60000,
-            type: 'POST',
-            url: '/control'
-        })
-            .done(function (result) {
-                activity.html("Activity: " + result.curr_activity);
-                step.html("Step: "+ result.curr_step);
-                if (result.task_finished && result.task_finished) {
-                    step.after("<li class=\"task\"> Task has finished. </li>");
-                }
-            })
-            .fail(function () {
-                alert('There was an error in the execution.');
+                $.ajax({
+                    timeout: 60000,
+                    type: 'POST',
+                    url: '/control'
+                })
+                    .done(function (result) {
+                        activity.html("Activity: " + result.curr_activity);
+                        step.html("Step: "+ result.curr_step);
+                        if (result.task_finished && result.task_finished) {
+                            result.html("");
+                            step.html("");
+                            step.after("<li class=\"task\"> Task has finished. </li>");
+                        }else{
+                            $('.js-btn-next').removeAttr('disabled');
+                        }
+                    })
+                    .fail(function () {
+                        alert('There was an error in the execution.');
+                        $('.js-btn-next').removeAttr('disabled');
+                    });
             });
-    });
-});
-</script>
-
-</body>
-</html>
+        });
+        </script>
+    {% endblock %}
