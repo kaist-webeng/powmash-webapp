@@ -23,7 +23,7 @@ def allowed_file(filename):
 
 @app.route('/')
 def hello_world():
-    return 'Hello World!'
+    return redirect('/deploy')
 
 
 @app.route('/deploy', methods=['GET',])
